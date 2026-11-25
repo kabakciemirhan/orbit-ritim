@@ -47,6 +47,8 @@ node tools/test-align.mjs     # MP3↔MIDI hizalama (ffmpeg gerekir)
 
 ## Notlar
 
+- Güncelleme yayınlarken `index.html` ve `js/main.js` içindeki `?v=` sürüm numarasını artır. Aksi halde tarayıcılar eski JS dosyalarını önbellekten kullanabilir.
+
 - Oyun mekaniği *A Dance of Fire and Ice*'tan ilham alır. ORBIT bağımsız ve özgün bir oyundur.
 
 ---

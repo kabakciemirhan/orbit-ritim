@@ -1,11 +1,11 @@
 // App flow: screens, song loading, settings, alignment, calibration and the play loop.
-import { AudioEngine, clickScheduler } from './audio.js';
-import { parseMidi } from './midi.js';
-import { buildChart, collectNotes, countOverlaps, pathConflicts, DIFFICULTIES } from './chart.js';
-import { autoAlign, toMono, applyMap, adjustMap, midiOnsets } from './align.js';
-import { Game, JUDGE } from './game.js';
-import { Renderer, COLORS } from './render.js';
-import { load, save, hashBytes } from './storage.js';
+import { AudioEngine, clickScheduler } from './audio.js?v=3';
+import { parseMidi } from './midi.js?v=3';
+import { buildChart, collectNotes, countOverlaps, pathConflicts, DIFFICULTIES } from './chart.js?v=3';
+import { autoAlign, toMono, applyMap, adjustMap, midiOnsets } from './align.js?v=3';
+import { Game, JUDGE } from './game.js?v=3';
+import { Renderer, COLORS } from './render.js?v=3';
+import { load, save, hashBytes } from './storage.js?v=3';
 
 const $ = (id) => document.getElementById(id);
 const audio = new AudioEngine();
