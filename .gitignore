@@ -1,0 +1,5 @@
+assets/local/
+*.mp3
+*.mid
+*.midi
+.DS_Store

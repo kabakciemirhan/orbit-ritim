@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#26281d">
+  <meta name="description" content="ORBIT — tek tuşlu ritim oyunu. Kendi MP3 + MIDI dosyalarınla oyna.">
+  <title>ORBIT — tek tuşlu ritim oyunu</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2326281d'/%3E%3Ccircle cx='11' cy='16' r='5' fill='%23ff6a3d'/%3E%3Ccircle cx='22' cy='16' r='5' fill='%2358b4ff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="stage" aria-hidden="true"></canvas>
+
+  <button id="fullscreen" class="icon-btn corner" title="Tam ekran" aria-label="Tam ekran">
+    <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Menu -->
+  <section id="screen-menu" class="screen active">
+    <div class="wrap">
+      <header class="brand">
+        <div class="logo"><span class="dot fire"></span><span class="dot ice"></span></div>
+        <h1>ORBIT</h1>
+        <p class="sub">Tek tuşlu ritim oyunu. Gezegenler sırayla döner — ritimde bas.</p>
+      </header>
+      <div class="cards">
+        <button class="card" id="card-demo">
+          <span class="card-kicker">Telifsiz · 1 dk</span>
+          <span class="card-title">Demo bölüm</span>
+          <span class="card-text">Yavaş başlar, hızlanır. Açıları okumayı öğretir.</span>
+        </button>
+        <button class="card" id="card-upload">
+          <span class="card-kicker">MP3 + MIDI</span>
+          <span class="card-title">Kendi şarkını yükle</span>
+          <span class="card-text">Dosyaların hiçbir yere yüklenmez; her şey tarayıcında işlenir.</span>
+        </button>
+        <button class="card hidden" id="card-local">
+          <span class="card-kicker">assets/local</span>
+          <span class="card-title">Yerel şarkı</span>
+          <span class="card-text">Bu klasördeki song.mp3 + song.mid.</span>
+        </button>
+      </div>
+      <div class="row center gap">
+        <button class="btn ghost" id="menu-calib">Gecikme kalibrasyonu</button>
+      </div>
+      <p class="foot">Herhangi bir tuş, tıklama veya dokunma ile oynanır · Esc duraklatır</p>
+    </div>
+  </section>
+
+  <!-- Upload -->
+  <section id="screen-upload" class="screen">
+    <div class="wrap narrow">
+      <button class="back" data-go="menu">‹ Menü</button>
+      <h2>Kendi şarkını yükle</h2>
+      <p class="muted">Bir MP3 (veya başka bir ses dosyası) ve aynı şarkının MIDI dosyasını seç.</p>
+      <div class="drop" id="drop">
+        <p><strong>Dosyaları buraya sürükle</strong></p>
+        <p class="muted small">ya da seç</p>
+        <div class="row center gap">
+          <label class="btn"><input type="file" id="file-audio" accept="audio/*,.mp3,.ogg,.wav,.m4a" hidden>Ses dosyası</label>
+          <label class="btn"><input type="file" id="file-midi" accept=".mid,.midi,audio/midi" hidden>MIDI dosyası</label>
+        </div>
+        <ul class="files">
+          <li id="f-audio">Ses: <span class="muted">seçilmedi</span></li>
+          <li id="f-midi">MIDI: <span class="muted">seçilmedi</span></li>
+        </ul>
+      </div>
+      <p class="privacy">🔒 Dosyaların hiçbir yere yüklenmez. Tamamen bu tarayıcıda işlenir.</p>
+      <div class="row end">
+        <button class="btn primary" id="upload-go" disabled>Devam</button>
+      </div>
+      <p class="error" id="upload-error"></p>
+    </div>
+  </section>
+
+  <!-- Loading -->
+  <section id="screen-loading" class="screen">
+    <div class="wrap narrow center-text">
+      <div class="spinner"></div>
+      <p id="loading-text">Yükleniyor…</p>
+    </div>
+  </section>
+
+  <!-- Prepare -->
+  <section id="screen-prep" class="screen">
+    <div class="wrap narrow">
+      <button class="back" data-go="menu">‹ Menü</button>
+      <h2 id="prep-title">Hazırlık</h2>
+      <p class="muted" id="prep-sub"></p>
+
+      <div class="panel">
+        <div class="field">
+          <span class="label">Zorluk</span>
+          <div class="seg" id="seg-diff">
+            <button data-v="easy">Kolay</button><button data-v="normal">Normal</button><button data-v="hard">Zor</button><button data-v="rush">Rush</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label">Mod</span>
+          <div class="seg" id="seg-mode">
+            <button data-v="normal">Normal</button><button data-v="practice">Pratik</button><button data-v="auto">Otomatik</button>
+          </div>
+        </div>
+        <div class="field" id="field-speed">
+          <span class="label">Hız</span>
+          <div class="seg" id="seg-speed">
+            <button data-v="0.5">%50</button><button data-v="0.75">%75</button><button data-v="1">%100</button>
+          </div>
+        </div>
+        <div class="field" id="field-track">
+          <span class="label">Track</span>
+          <select id="sel-track"></select>
+        </div>
+        <div class="field">
+          <span class="label">Checkpoint</span>
+          <select id="sel-cp">
+            <option value="0">Kapalı</option><option value="16">16 tile</option><option value="32">32 tile</option><option value="64">64 tile</option><option value="128">128 tile</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="label">Twirl</span>
+          <label class="switch"><input type="checkbox" id="chk-twirl"><span></span></label>
+          <span class="hint">Tempo hızlanınca dönüş yönü ters çevrilir</span>
+        </div>
+        <div class="field">
+          <span class="label">Çakışma önleme</span>
+          <label class="switch"><input type="checkbox" id="chk-avoid"><span></span></label>
+          <span class="hint">Yol kendi üstüne binecekse dönüş yönünü çevirir (zamanlama değişmez)</span>
+        </div>
+        <div class="field">
+          <span class="label">Efektleri azalt</span>
+          <label class="switch"><input type="checkbox" id="chk-fx"><span></span></label>
+        </div>
+      </div>
+
+      <div class="panel info" id="chart-info"></div>
+      <div class="panel info" id="align-info"></div>
+
+      <div class="row gap wrap-row">
+        <button class="btn" id="prep-align">Hizalama</button>
+        <button class="btn" id="prep-calib">Kalibrasyon</button>
+        <span class="spacer"></span>
+        <button class="btn primary big" id="prep-start">Başla</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Align -->
+  <section id="screen-align" class="screen">
+    <div class="wrap narrow">
+      <button class="back" data-go="prep">‹ Hazırlık</button>
+      <h2>MP3 ↔ MIDI hizalama</h2>
+      <div class="panel info" id="align-result"></div>
+      <div class="panel">
+        <div class="field col">
+          <span class="label">İnce ofset <b id="v-offset">0 ms</b></span>
+          <input type="range" id="rng-offset" min="-500" max="500" step="1" value="0">
+          <span class="hint">Ok tuşları ±1 ms, Shift + ok ±10 ms</span>
+        </div>
+        <div class="field col">
+          <span class="label">Tempo ölçeği <b id="v-scale">1.0000</b></span>
+          <input type="range" id="rng-scale" min="0.97" max="1.03" step="0.0025" value="1">
+        </div>
+        <div class="field col">
+          <span class="label">Önizleme başlangıcı <b id="v-ppos">0 s</b></span>
+          <input type="range" id="rng-ppos" min="0" max="100" step="1" value="0">
+        </div>
+        <div class="row gap wrap-row">
+          <button class="btn" id="align-preview">▶ Tık sesiyle önizle</button>
+          <button class="btn ghost" id="align-reset">Sıfırla</button>
+          <button class="btn ghost" id="align-rerun">Yeniden hizala</button>
+          <span class="spacer"></span>
+          <button class="btn primary" id="align-save">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Calibration -->
+  <section id="screen-calib" class="screen">
+    <div class="wrap narrow">
+      <button class="back" id="calib-back">‹ Geri</button>
+      <h2>Ses / görüntü gecikmesi</h2>
+      <p class="muted">4 vuruş dinle, ardından 16 vuruş boyunca tıka tık ritimde herhangi bir tuşa bas.</p>
+      <div class="panel center-text">
+        <div class="beats" id="calib-beats"></div>
+        <p class="big-num" id="calib-value">—</p>
+        <p class="muted" id="calib-status">Mevcut gecikme: 0 ms</p>
+        <div class="row center gap">
+          <button class="btn primary" id="calib-start">Başlat</button>
+          <button class="btn" id="calib-save" disabled>Kaydet</button>
+          <button class="btn ghost" id="calib-zero">Sıfırla</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HUD -->
+  <section id="screen-game" class="screen hud">
+    <div class="progress"><div id="hud-progress"></div></div>
+    <div class="hud-top">
+      <div class="hud-stat"><span class="hud-k">Doğruluk</span><span id="hud-acc">100.00%</span></div>
+      <div class="hud-stat right"><span class="hud-k">Combo</span><span id="hud-combo">0</span></div>
+    </div>
+    <div class="hud-judge" id="hud-judge"><span id="hud-label"></span><span id="hud-ms"></span></div>
+    <div class="hud-center" id="hud-center"></div>
+    <div class="hud-mode" id="hud-mode"></div>
+    <button class="icon-btn hud-pause" id="hud-pause" aria-label="Duraklat">
+      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    </button>
+  </section>
+
+  <!-- Pause -->
+  <section id="screen-pause" class="screen overlay">
+    <div class="sheet">
+      <h2>Duraklatıldı</h2>
+      <button class="btn primary wide" id="pause-resume">Devam</button>
+      <button class="btn wide" id="pause-restart">Baştan</button>
+      <button class="btn ghost wide" id="pause-menu">Menü</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="screen-results" class="screen overlay">
+    <div class="sheet wide-sheet">
+      <p class="card-kicker" id="res-kicker"></p>
+      <h2 id="res-title">Tamamlandı</h2>
+      <p class="big-num" id="res-acc"></p>
+      <p class="muted" id="res-best"></p>
+      <div class="grid" id="res-grid"></div>
+      <p id="res-comment"></p>
+      <div class="row gap center">
+        <button class="btn primary" id="res-retry">Tekrar</button>
+        <button class="btn" id="res-prep">Ayarlar</button>
+        <button class="btn ghost" id="res-menu">Menü</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
