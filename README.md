@@ -6,14 +6,12 @@ Saf HTML + CSS + JavaScript (ES modules). Build adımı, framework ya da dış C
 
 ## Şarkı dosyaları
 
-Telif nedeniyle şarkı bu repoda **yoktur**. Oyunu çalıştırmak için iki dosyayı ekle:
+Şarkı repoda, `assets/local/` klasöründe yer alır:
 
 ```
 assets/local/song.mp3   # Rush E kaydı
 assets/local/song.mid   # Rush E MIDI
 ```
-
-`assets/local/` klasörü `.gitignore`'dadır ve hiçbir zaman commit'lenmez.
 
 ## Çalıştırma
 
@@ -50,8 +48,7 @@ node tools/test-align.mjs     # MP3↔MIDI hizalama (ffmpeg gerekir)
 ## Notlar
 
 - Oyun mekaniği *A Dance of Fire and Ice*'tan ilham alır. ORBIT bağımsız ve özgün bir oyundur.
-- Bu repo hiçbir telifli şarkı içermez.
 
 ---
 
-**English:** ORBIT is a one-button rhythm game built for Rush E. The song is not included for copyright reasons. Put `song.mp3` and `song.mid` into `assets/local/` and run `python3 -m http.server 8000`. The gameplay mechanic is inspired by *A Dance of Fire and Ice*. ORBIT is an independent, original game, and this repository contains no copyrighted songs.
+**English:** ORBIT is a one-button rhythm game built for Rush E. Play it on the live site, or run it locally with `python3 -m http.server 8000`. The song files live in `assets/local/`. The gameplay mechanic is inspired by *A Dance of Fire and Ice*. ORBIT is an independent, original game.
