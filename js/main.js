@@ -5,7 +5,6 @@ import { buildChart, collectNotes, countOverlaps, pathConflicts, DIFFICULTIES } 
 import { autoAlign, toMono, applyMap, adjustMap, midiOnsets } from './align.js';
 import { Game, JUDGE } from './game.js';
 import { Renderer, COLORS } from './render.js';
-import { DEMO_SONG, demoAsMidi, renderDemo } from './demo.js';
 import { load, save, hashBytes } from './storage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -69,14 +68,6 @@ $('fullscreen').addEventListener('click', () => {
 });
 
 // ---------- Song loading ----------
-async function loadDemo() {
-  loading('Demo sentezleniyor…');
-  audio.ensure();
-  const buffer = await renderDemo(audio.ctx.sampleRate);
-  app.song = { id: DEMO_SONG.id, title: DEMO_SONG.title, kind: 'demo', buffer, midi: demoAsMidi(), align: null };
-  openPrep();
-}
-
 async function loadSongBytes(audioBytes, midiBytes, title, kind) {
   loading('Ses çözülüyor…');
   audio.ensure();
@@ -89,21 +80,26 @@ async function loadSongBytes(audioBytes, midiBytes, title, kind) {
   if (!app.song.align) runAlign();
 }
 
+const SONG_TITLE = 'Rush E';
+
 async function loadLocal() {
-  loading('Yerel şarkı yükleniyor…');
+  loading('Rush E yükleniyor…');
   const [a, m] = await Promise.all([fetch('assets/local/song.mp3'), fetch('assets/local/song.mid')]);
-  if (!a.ok || !m.ok) throw new Error('Yerel dosyalar bulunamadı');
-  await loadSongBytes(await a.arrayBuffer(), await m.arrayBuffer(), 'Yerel şarkı', 'local');
+  if (!a.ok || !m.ok) throw new Error('Şarkı dosyaları bulunamadı');
+  await loadSongBytes(await a.arrayBuffer(), await m.arrayBuffer(), SONG_TITLE, 'local');
 }
 
 async function detectLocal() {
+  let ok = false;
   try {
     const opts = { method: 'HEAD', cache: 'no-store' };
     const [a, m] = await Promise.all([fetch('assets/local/song.mp3', opts), fetch('assets/local/song.mid', opts)]);
-    if (a.ok && m.ok) $('card-local').classList.remove('hidden');
+    ok = a.ok && m.ok;
   } catch {
-    // not available (e.g. GitHub Pages) — keep hidden
+    ok = false;
   }
+  $('card-local').classList.toggle('hidden', !ok);
+  $('song-missing').classList.toggle('hidden', ok);
 }
 
 const guard = (fn) => async (...args) => {
@@ -116,36 +112,7 @@ const guard = (fn) => async (...args) => {
   }
 };
 
-$('card-demo').addEventListener('click', guard(loadDemo));
 $('card-local').addEventListener('click', guard(loadLocal));
-$('card-upload').addEventListener('click', () => show('upload'));
-
-// Upload screen
-const picked = { audio: null, midi: null };
-function setPicked(file) {
-  const name = file.name.toLowerCase();
-  if (/\.(mid|midi)$/.test(name) || file.type.includes('midi')) picked.midi = file;
-  else if (file.type.startsWith('audio/') || /\.(mp3|ogg|wav|m4a|aac|flac)$/.test(name)) picked.audio = file;
-  $('f-audio').innerHTML = `Ses: ${picked.audio ? `<b>${escapeHtml(picked.audio.name)}</b>` : '<span class="muted">seçilmedi</span>'}`;
-  $('f-midi').innerHTML = `MIDI: ${picked.midi ? `<b>${escapeHtml(picked.midi.name)}</b>` : '<span class="muted">seçilmedi</span>'}`;
-  $('upload-go').disabled = !(picked.audio && picked.midi);
-}
-const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-$('file-audio').addEventListener('change', (e) => e.target.files[0] && setPicked(e.target.files[0]));
-$('file-midi').addEventListener('change', (e) => e.target.files[0] && setPicked(e.target.files[0]));
-const drop = $('drop');
-drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
-drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-drop.addEventListener('drop', (e) => {
-  e.preventDefault();
-  drop.classList.remove('over');
-  for (const f of e.dataTransfer.files) setPicked(f);
-});
-$('upload-go').addEventListener('click', guard(async () => {
-  $('upload-error').textContent = '';
-  const title = picked.audio.name.replace(/\.[^.]+$/, '');
-  await loadSongBytes(await picked.audio.arrayBuffer(), await picked.midi.arrayBuffer(), title, 'upload');
-}));
 
 // ---------- Alignment ----------
 function songAlignKey() { return `align:${app.song.id}`; }
@@ -163,7 +130,7 @@ function effectiveMap() {
 
 async function runAlign() {
   const song = app.song;
-  if (!song || song.kind === 'demo') return;
+  if (!song) return;
   const job = {};
   app.aligning = job;
   renderAlignInfo('Hizalanıyor… %0');
@@ -218,7 +185,7 @@ function alignSummary() {
 
 function renderAlignInfo(progress) {
   const el = $('align-info');
-  if (!app.song || app.song.kind === 'demo') {
+  if (!app.song) {
     el.innerHTML = '';
     return;
   }
@@ -246,7 +213,7 @@ function trackSel() {
 function songNotes() {
   const song = app.song;
   let notes = collectNotes(song.midi, trackSel());
-  const map = song.kind === 'demo' ? null : effectiveMap();
+  const map = effectiveMap();
   if (map) {
     notes = notes.map((n) => {
       const a = applyMap(map, n.time_s);
@@ -274,16 +241,14 @@ function rebuildChart() {
     `<b>${c.tiles.length - 1}</b> tile · ${Math.floor(dur / 60)}:${String(Math.round(dur % 60)).padStart(2, '0')} · ` +
     `Δt min/medyan ${(c.stats.minGap * 1000).toFixed(0)} / ${(c.stats.medGap * 1000).toFixed(0)} ms · ` +
     `keskin dönüş ${c.stats.sharp} · uzun bekleme ${c.stats.longWait} · twirl ${c.stats.twirls}`;
-  $('prep-start').disabled = !!app.aligning && app.song.kind !== 'demo';
+  $('prep-start').disabled = !!app.aligning;
 }
 
 function openPrep() {
   const song = app.song;
   show('prep');
   $('prep-title').textContent = song.title;
-  $('prep-sub').textContent = song.kind === 'demo'
-    ? 'Telifsiz demo · Web Audio ile sentezlendi'
-    : `${song.midi.tracks.length} track · ses ${song.buffer.duration.toFixed(1)} s · MIDI ${song.midi.duration_s.toFixed(1)} s`;
+  $('prep-sub').textContent = `${song.midi.tracks.length} track · ses ${song.buffer.duration.toFixed(1)} s · MIDI ${song.midi.duration_s.toFixed(1)} s`;
   segment('seg-diff', settings.difficulty, (v) => { settings.difficulty = v; persist(); rebuildChart(); });
   segment('seg-mode', settings.mode, (v) => { settings.mode = v; persist(); syncSpeed(); });
   segment('seg-speed', settings.speed, (v) => { settings.speed = Number(v); persist(); });
@@ -309,7 +274,6 @@ function openPrep() {
   const fx = $('chk-fx');
   fx.checked = settings.reduceFx;
   fx.onchange = () => { settings.reduceFx = fx.checked; persist(); };
-  $('prep-align').classList.toggle('hidden', song.kind === 'demo');
   rebuildChart();
   renderAlignInfo(app.aligning ? 'Hizalanıyor…' : undefined);
 }
@@ -712,7 +676,6 @@ const testHook = params.has('test') ? { results: [] } : null;
 if (testHook) {
   Object.assign(testHook, {
     app, settings, renderer, audio,
-    loadDemo: guard(loadDemo),
     loadLocal: guard(loadLocal),
     start: (opts = {}) => { Object.assign(settings, opts); rebuildChart(); startGame(); },
     overlaps: () => (app.chart ? { overlaps: countOverlaps(app.chart.tiles, 24, 0.3), ...pathConflicts(app.chart.tiles), stats: app.chart.stats, tiles: app.chart.tiles.length - 1 } : null),

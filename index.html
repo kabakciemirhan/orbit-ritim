@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="theme-color" content="#26281d">
-  <meta name="description" content="ORBIT — tek tuşlu ritim oyunu. Kendi MP3 + MIDI dosyalarınla oyna.">
-  <title>ORBIT — tek tuşlu ritim oyunu</title>
+  <meta name="description" content="ORBIT — Rush E için tek tuşlu ritim oyunu.">
+  <title>ORBIT — Rush E</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2326281d'/%3E%3Ccircle cx='11' cy='16' r='5' fill='%23ff6a3d'/%3E%3Ccircle cx='22' cy='16' r='5' fill='%2358b4ff'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -24,53 +24,22 @@
         <h1>ORBIT</h1>
         <p class="sub">Tek tuşlu ritim oyunu. Gezegenler sırayla döner — ritimde bas.</p>
       </header>
-      <div class="cards">
-        <button class="card" id="card-demo">
-          <span class="card-kicker">Telifsiz · 1 dk</span>
-          <span class="card-title">Demo bölüm</span>
-          <span class="card-text">Yavaş başlar, hızlanır. Açıları okumayı öğretir.</span>
-        </button>
-        <button class="card" id="card-upload">
-          <span class="card-kicker">MP3 + MIDI</span>
-          <span class="card-title">Kendi şarkını yükle</span>
-          <span class="card-text">Dosyaların hiçbir yere yüklenmez; her şey tarayıcında işlenir.</span>
-        </button>
+      <div class="cards single">
         <button class="card hidden" id="card-local">
-          <span class="card-kicker">assets/local</span>
-          <span class="card-title">Yerel şarkı</span>
-          <span class="card-text">Bu klasördeki song.mp3 + song.mid.</span>
+          <span class="card-kicker">Rush E</span>
+          <span class="card-title">Oyna</span>
+          <span class="card-text">Kolay’dan Rush’a dört zorluk. Normal, Pratik ve Otomatik mod.</span>
         </button>
+        <div class="card static hidden" id="song-missing">
+          <span class="card-kicker">Şarkı bulunamadı</span>
+          <span class="card-title">assets/local/ boş</span>
+          <span class="card-text">Telif nedeniyle şarkı bu sitede barındırılmıyor. Oyunu yerelde çalıştır ve <code>assets/local/song.mp3</code> ile <code>song.mid</code> dosyalarını ekle.</span>
+        </div>
       </div>
       <div class="row center gap">
         <button class="btn ghost" id="menu-calib">Gecikme kalibrasyonu</button>
       </div>
       <p class="foot">Herhangi bir tuş, tıklama veya dokunma ile oynanır · Esc duraklatır</p>
-    </div>
-  </section>
-
-  <!-- Upload -->
-  <section id="screen-upload" class="screen">
-    <div class="wrap narrow">
-      <button class="back" data-go="menu">‹ Menü</button>
-      <h2>Kendi şarkını yükle</h2>
-      <p class="muted">Bir MP3 (veya başka bir ses dosyası) ve aynı şarkının MIDI dosyasını seç.</p>
-      <div class="drop" id="drop">
-        <p><strong>Dosyaları buraya sürükle</strong></p>
-        <p class="muted small">ya da seç</p>
-        <div class="row center gap">
-          <label class="btn"><input type="file" id="file-audio" accept="audio/*,.mp3,.ogg,.wav,.m4a" hidden>Ses dosyası</label>
-          <label class="btn"><input type="file" id="file-midi" accept=".mid,.midi,audio/midi" hidden>MIDI dosyası</label>
-        </div>
-        <ul class="files">
-          <li id="f-audio">Ses: <span class="muted">seçilmedi</span></li>
-          <li id="f-midi">MIDI: <span class="muted">seçilmedi</span></li>
-        </ul>
-      </div>
-      <p class="privacy">🔒 Dosyaların hiçbir yere yüklenmez. Tamamen bu tarayıcıda işlenir.</p>
-      <div class="row end">
-        <button class="btn primary" id="upload-go" disabled>Devam</button>
-      </div>
-      <p class="error" id="upload-error"></p>
     </div>
   </section>
 

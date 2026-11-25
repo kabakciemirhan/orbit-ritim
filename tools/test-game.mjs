@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import { Game, judge } from '../js/game.js';
 import { buildChart, collectNotes, DIFFICULTIES } from '../js/chart.js';
 import { parseMidi } from '../js/midi.js';
-import { DEMO_SONG } from '../js/demo.js';
 
 globalThis.performance ??= { now: () => Date.now() };
 
@@ -59,9 +58,13 @@ function run(name, chart, mode, pressFn, rate = 1) {
   return { g, done };
 }
 
-const songs = [['demo', DEMO_SONG.notes]];
+const songs = [];
 const mid = new URL('../assets/local/song.mid', import.meta.url).pathname;
-if (existsSync(mid)) songs.push(['local(raw midi time)', collectNotes(parseMidi(readFileSync(mid)), 'all')]);
+if (!existsSync(mid)) {
+  console.error('assets/local/song.mid not found');
+  process.exit(1);
+}
+songs.push(['Rush E (raw midi time)', collectNotes(parseMidi(readFileSync(mid)), 'all')]);
 
 for (const [label, notes] of songs) {
   console.log(label);

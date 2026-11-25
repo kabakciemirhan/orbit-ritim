@@ -142,12 +142,6 @@ select option { background: var(--bg); }
 
 input[type="range"] { width: 100%; accent-color: var(--cream); }
 
-.drop { border: 1.5px dashed rgba(207, 201, 172, 0.5); border-radius: 16px; padding: 28px; text-align: center; margin: 18px 0; transition: background 0.2s var(--ease), border-color 0.2s; }
-.drop.over { background: rgba(207, 201, 172, 0.08); border-color: var(--cream); }
-.drop p { margin: 4px 0; }
-.files { list-style: none; padding: 0; margin: 18px 0 0; text-align: left; font-size: 14px; display: grid; gap: 6px; }
-.privacy { color: var(--cream); font-size: 14px; }
-.error { color: #ff8a7a; font-size: 14px; min-height: 1em; }
 
 .spinner { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--cream); margin: 30vh auto 18px; animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -197,3 +191,8 @@ input[type="range"] { width: 100%; accent-color: var(--cream); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
 }
+
+.cards.single { grid-template-columns: minmax(240px, 420px); justify-content: center; }
+.card.static { cursor: default; }
+.card.static:hover { transform: none; border-color: var(--line); background: var(--panel); }
+.card code { font-size: 12px; color: var(--cream); }

@@ -3,7 +3,6 @@ import { readFileSync, existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { parseMidi } from '../js/midi.js';
 import { buildChart, collectNotes, countOverlaps, pathConflicts, DIFFICULTIES } from '../js/chart.js';
-import { DEMO_SONG } from '../js/demo.js';
 
 const fmt = (s) => `${(s * 1000).toFixed(1)} ms`;
 
@@ -47,12 +46,8 @@ if (existsSync(midPath)) {
   console.log('  tempo twirl=on:');
   checkChart('rush+tw', buildChart(all, { difficulty: 'rush', twirl: true }));
 } else {
-  console.log(`(skip) ${midPath} not found`);
+  console.error(`${midPath} not found — put the song at assets/local/song.mid`);
+  process.exit(1);
 }
 
-console.log(`DEMO: notes=${DEMO_SONG.notes.length} duration=${DEMO_SONG.duration.toFixed(1)} s`);
-for (const d of Object.keys(DIFFICULTIES)) {
-  const r = checkChart(d, buildChart(DEMO_SONG.notes, { difficulty: d }));
-  assert.equal(r.ov + r.near + r.crossings, 0, `demo ${d}: path overlaps itself`);
-}
 console.log('OK — all assertions passed');
